@@ -1,21 +1,21 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Google Account Chooser",
   "short_name": "Account Chooser",
   "version": "1.0.1",
-  "minimum_chrome_version": "40",
   "description": "A simple extension to choose Google accounts per tab.",
-  "browser_action": {
+  "action": {
     "default_popup": "popup.html"
   },
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+    "service_worker": "background.js"
   },
   "permissions": [
-      "activeTab",
-      "*://accounts.google.com/*"
-    ],
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://accounts.google.com/*"
+  ],
   "icons": {
     "16": "logo16.png",
     "24": "logo24.png",
