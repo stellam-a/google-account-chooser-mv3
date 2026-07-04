@@ -1,85 +1,118 @@
+/* Core Document Configuration */
 html {
     overflow: hidden;
+    background-color: #121214; /* Deep slate neutral background */
 }
 
 body {
     overflow: hidden;
     margin: 0;
+    padding: 8px; /* Breathing room around the edges */
+    min-width: 290px; /* Modern compact extension width */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Smooth spacing between rows */
 }
 
-/* Parts of the following code comes (mostly) directly from Google's own calculated (not source) styles, for hopeful consistency, with some removed bloat and the exclusion of copyrighted resources like Google Sans. I then adjusted the styles to use new flex-box positioning to solve some issues with resizing. */
-
+/* Individual Profile Card Container */
 .topA {
-    font: 13px/27px Roboto, RobotoDraft, Arial, sans-serif;
-    line-height: normal;
-    font-family: "Segoe UI", "Roboto", arial, sans-serif;
-    outline-offset: -2px;
-    white-space: nowrap;
-    color: inherit;
-    border: none;
-    cursor: pointer;
-    height: 35px;
-    outline: 0;
-    padding: 12px;
-    border-top: 0;
     display: flex;
     flex-direction: row;
+    align-items: center; /* Vertical centering for contents */
+    padding: 12px 14px;
+    height: auto; /* Allow flexible height adjustments */
+    background-color: #1a1a1e; /* Elevated card surface color */
+    border: 1px solid #2d2d34; /* Subtle dark border separating rows */
+    border-radius: 12px; /* Modern rounded curves */
+    cursor: pointer;
+    text-decoration: none;
+    color: #e3e3e6; /* Crisp off-white text */
+    outline: none;
+    box-sizing: border-box;
+    
+    /* Smooth animated state transitions */
+    transition: background-color 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
 }
 
+/* Profile Photo */
 .img {
     border-radius: 50%;
     overflow: hidden;
-    border: none;
-    vertical-align: top;
-    height: 32px;
-    width: 32px;
+    border: 1px solid #3d3d45;
+    height: 38px;
+    width: 38px;
     flex-shrink: 0;
+    object-fit: cover;
 }
 
+/* Account Details Column */
 .top {
-    margin: 0 0 0 12px;
+    margin-left: 12px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     flex-shrink: 1;
-
-    min-width: 0;
-}
-/*
-.name .email {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-
-}
-*/
-.name {
-    color: #3c4043;
-    font: 500 14px/18px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
-    letter-spacing: 0.25px;
-}
-
-.email {
-    color: #5f6368;
-    font: 400 12px / 16px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
-}
-
-.corner {
-    color: #5d6369;
-    font: italic 400 12px/14px Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
-    padding: 2px 0 0 5px; /*2px 0 0 20px;*/
-    text-align: right;
-    font-family: Roboto, Arial, sans-serif !important;
+    min-width: 0; /* Safeguard for text truncation */
     flex-grow: 1;
 }
 
-.topA:active, .topA:focus:active {
-    background-color: #e8e8e9;
+/* Typography Details with Ellipsis Overflows */
+.name {
+    color: #f1f3f4; /* Bright legible text for title */
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.topA:focus, .topA:hover:focus {
-    background-color: #f4f4f4;
+.email {
+    color: #9aa0a6; /* Muted gray for secondary details */
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
 }
 
+/* Modern Pill-Shaped Status Badges */
+.corner {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase; /* Clean uniform appearance */
+    color: #a8b2ff; /* Soft pastel blue accent text */
+    background-color: rgba(168, 178, 255, 0.12); /* Semi-transparent accent tint */
+    padding: 4px 8px;
+    border-radius: 20px;
+    margin-left: 12px;
+    flex-shrink: 0;
+    text-align: center;
+}
+
+/* Fallback override to strip italic styling from the legacy setup */
+.corner {
+    font-family: inherit !important;
+    font-style: normal;
+}
+
+/* Micro-interaction States */
 .topA:hover {
-    background-color: #f7f8f8;
+    background-color: #24242b; /* Subtle lift on hover */
+    border-color: #444452;
+}
+
+.topA:focus-visible {
+    background-color: #24242b;
+    border-color: #8ab4f8; /* Crisp Google-blue highlight when keyboard focused */
+}
+
+.topA:active {
+    background-color: #1e1e24;
+    transform: scale(0.97); /* Tactile click downscale effect */
 }
