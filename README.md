@@ -14,7 +14,7 @@ Because this is an independent open-source project, you will install it directly
 1. Scroll up to the top of this GitHub page.
 2. Click the green button that says **Code** (located near the top right).
 3. In the drop-down menu that appears, click **Download ZIP**.
-4. This will download a file named something like `Google-Account-Chooser-Extension-main.zip` to your computer.
+4. This will download a file named something like `Google-Account-Chooser-Extension-master.zip` to your computer.
 
 ### Step 2: Unzip the Folder
 1. Go to your computer's **Downloads** folder.
