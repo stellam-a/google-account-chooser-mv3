@@ -1,7 +1,9 @@
+// MV3 Fix: Change chrome.browserAction to chrome.action
+const actionAPI = chrome.action || (window.browser && browser.action);
+
 // If the browser is in dark mode, use the light icons. Otherwise, use the dark icons.
-// This is run in a popup because a universal content script would be too invasive and performance-heavy, and it cannot be run in a background script because of https://crbug.com/968651
 if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    chrome.browserAction.setIcon({
+    actionAPI.setIcon({
         path : {
             "16": "lightlogo16.png",
             "24": "lightlogo24.png",
@@ -12,7 +14,7 @@ if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         }
     });
 } else {
-    chrome.browserAction.setIcon({
+    actionAPI.setIcon({
         path : {
             "16": "logo16.png",
             "24": "logo24.png",
@@ -24,18 +26,16 @@ if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
     });
 }
 
-function signIn(email) { // A builder that returns a function to set the url to allow the user to log in to a signed out account
+function signIn(email) { 
     return (responses) => {
-        let response = responses[0]
-          , url;
-        if (response.url.includes('google')) { // Weak test for if Google will redirect to that url
+        let response = responses[0], url;
+        if (response && response.url && response.url.includes('google')) { 
             url = new URL(response.url);
         } else {
             url = new URL('https://www.google.com/webhp');
         }
         let params = new URLSearchParams(url.search);
 
-        // This empties the authuser and moves it to the end to model the format that Google uses for this
         params.delete('authuser'); 
         params.set('authuser', '');
 
@@ -43,46 +43,45 @@ function signIn(email) { // A builder that returns a function to set the url to 
         let newURL = 'https://accounts.google.com/AccountChooser?source=ogb&continue='+encodeURIComponent(url.toString())+'&Email='+email;
         
         window.open(newURL);
-        window.close(); // Just in case
-        
+        window.close(); 
     }
 }
 
-function setURL(index) { // A builder that returns a function to set the url to the corresponding authuser index
-    function navigate(responses) { // Accepts the tab query response, changes the authuser URL param (causing main page reload), and closes the popup
-        let response = responses[0]
-          , url = new URL(response.url)
+function setURL(index) { 
+    function navigate(responses) { 
+        let response = responses[0];
+        if (!response || !response.url) return;
+        
+        let url = new URL(response.url)
           , params = new URLSearchParams(url.search);
         params.set('authuser', index);
         url.search = params.toString();
-        if (window.browser) {
-            browser.tabs.update(response.id, {
-                url: url.toString()
-            }).then(window.close); // Close popup after setting url
-        } else {
-            chrome.tabs.update(response.id, {
-                url: url.toString()
-            }, window.close); // Close popup after setting url
-        }
+        
+        // MV3 clean promise handling
+        chrome.tabs.update(response.id, { url: url.toString() })
+            .then(() => window.close())
+            .catch(() => window.close());
     }
     
     return () => {
-        if (window.browser) {
-            browser.tabs.query({ // Get current tab
-                active: true,
-                currentWindow: true
-            }).then(navigate); // Navigate to the url with changed authuser
-        } else {
-            chrome.tabs.query({ // Get current tab
-                active: true,
-                currentWindow: true
-            }, navigate); // Navigate to the url with changed authuser
-        }
+        chrome.tabs.query({ active: true, currentWindow: true })
+            .then(navigate);
     }
 }
 
-function populate(response) { // Create the GUI from the strange nested Array structure that Google accounts responds with
-    response[1].forEach(info => { // There is useless info in response[0]; response[1] has the accounts
+function populate(response) { 
+    // Handle potential errors from the background script parser
+    if (!response || response.error || !response[1]) {
+        console.error('Failed to fetch accounts:', response ? response.error : 'No response');
+        let errorDiv = document.createElement('div');
+        errorDiv.style.padding = '10px';
+        errorDiv.style.color = 'red';
+        errorDiv.textContent = 'Failed to load Google Accounts. Make sure you are logged into at least one account.';
+        document.body.appendChild(errorDiv);
+        return;
+    }
+
+    response[1].forEach(info => { 
         console.log('Account: ', info);
         
         let a = document.createElement('a');
@@ -90,7 +89,7 @@ function populate(response) { // Create the GUI from the strange nested Array st
         
         let img = document.createElement('img');
         img.classList.add('img')
-        img.src = info[4]; // Profile image URL
+        img.src = info[4]; 
         a.appendChild(img);
         
         let topDiv = document.createElement('div');
@@ -98,50 +97,40 @@ function populate(response) { // Create the GUI from the strange nested Array st
         
         let nameDiv = document.createElement('div');
         nameDiv.classList.add('name')
-        nameDiv.appendChild(document.createTextNode(info[2])); // Name
+        nameDiv.appendChild(document.createTextNode(info[2])); 
         topDiv.appendChild(nameDiv);
         
         let emailDiv = document.createElement('div');
         emailDiv.classList.add('email')
-        emailDiv.appendChild(document.createTextNode(info[3])); // Email
+        emailDiv.appendChild(document.createTextNode(info[3])); 
         topDiv.appendChild(emailDiv);
         
         a.appendChild(topDiv);
         
-        if (info.length < 16) { // If the account is signed out (as far as I know)
+        if (info.length < 16) { 
             let cornerDiv = document.createElement('div');
             cornerDiv.classList.add('corner')
             cornerDiv.appendChild(document.createTextNode('Signed out'));
             a.appendChild(cornerDiv);
             a.addEventListener('click', () => {
-                if (window.browser) {
-                    browser.tabs.query({ // Get current tab
-                        active: true,
-                        currentWindow: true
-                    }).then(signIn(info[3])); // Navigate to sign in page
-                } else {
-                    chrome.tabs.query({ // Get current tab
-                        active: true,
-                        currentWindow: true
-                    }, signIn(info[3])); // Navigate to signin
-                }
+                chrome.tabs.query({ active: true, currentWindow: true })
+                    .then(signIn(info[3]));
             });
         } else {
-            if (info[7] == 0) { // Account index (pretty sure)
+            if (info[7] == 0) { 
                 let cornerDiv = document.createElement('div');
                 cornerDiv.classList.add('corner')
                 cornerDiv.appendChild(document.createTextNode('Default'));
                 a.appendChild(cornerDiv);
             }
-            a.addEventListener('click', setURL(info[7])); // Again, account index (pretty sure)
+            a.addEventListener('click', setURL(info[7])); 
         }
         
         document.body.appendChild(a);
     });
 }
 
-if (window.browser) {
-    browser.runtime.sendMessage(null).then(populate); // Get user list from background script (to elleviate cross-origin issues)
-} else {
-    chrome.runtime.sendMessage(null, populate); // Get user list from background script (to elleviate cross-origin issues)
-}
+// MV3 clean message passing with Promises
+chrome.runtime.sendMessage(null)
+    .then(populate)
+    .catch(err => console.error("Error communicating with background script:", err));
